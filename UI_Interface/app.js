@@ -68,6 +68,10 @@ const ALL_PERMS = Object.keys(PERM_LABELS);
 // ═══════════════════════════════════════
 
 window.receiveState = function (jsonStr) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => window.receiveState(jsonStr));
+        return;
+    }
     try {
         S = JSON.parse(jsonStr);
     } catch (e) {
@@ -100,11 +104,9 @@ window.showToast = function (msg, isError) {
     setTimeout(() => { el.remove(); }, 3500);
 };
 
-// ═══════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════
 
-function $(id) { return document.getElementById(id); }
 // ═══════════════════════════════════════
 //   LUA BRIDGE & MOCKING
 // ═══════════════════════════════════════
@@ -376,9 +378,9 @@ function renderAccueil(el) {
     <div class="card-duo">`;
 
     // Create company
-    const sectorOptions = (S.config && S.config.Sectors) || [
+    const sectorOptions = asArray((S.config && S.config.Sectors) || [
         "Commerçant", "Mécano", "Restaurateur", "Sécurité", "Transport", "Médical", "Artisan", "Légal", "Autre"
-    ];
+    ]);
 
     html += `<div class="card">
         <div class="card-title">Créer une entreprise</div>
