@@ -462,19 +462,45 @@ function doCreateCompany() {
 }
 
 function doAdminRename(id, oldName) {
-    const newName = prompt("Nouveau nom pour l'entreprise :", oldName);
-    if (!newName) return;
-    const name = newName.trim();
+    showModal(`
+        <div class="modal-title">Renommer l'entreprise</div>
+        <div class="form-group">
+            <label class="form-label">Nouveau nom</label>
+            <input class="input" id="admin-new-name" value="${esc(oldName)}" maxlength="24"/>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="doConfirmAdminRename(${id})">Renommer</button>
+        </div>
+    `);
+}
+
+function doConfirmAdminRename(id) {
+    const input = $('admin-new-name');
+    if (!input) return;
+    const name = input.value.trim();
     if (name.length < 3 || name.length > 24) {
         showToast('Le nom doit contenir entre 3 et 24 caractères.', true);
         return;
     }
     lua.adminRenameCompany(id, name);
+    closeModal();
 }
 
 function doAdminDelete(id, name) {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'entreprise "${name}" ? Cette action est irréversible.`)) return;
+    showModal(`
+        <div class="modal-title">Supprimer l'entreprise "${esc(name)}" ?</div>
+        <p class="text-sm text-muted">Cette action est irréversible et supprimera tous les membres, grades et données de l'entreprise.</p>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+            <button class="btn btn-danger" onclick="doConfirmAdminDelete(${id})">Supprimer l'entreprise</button>
+        </div>
+    `);
+}
+
+function doConfirmAdminDelete(id) {
     lua.adminDeleteCompany(id);
+    closeModal();
 }
 
 // ═══════════════════════════════════════
