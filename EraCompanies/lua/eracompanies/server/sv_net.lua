@@ -38,6 +38,8 @@ local netStrings = {
     "EraC_SendContact",
     "EraC_GetThread",
     "EraC_ReplyThread",
+    "EraC_AdminRenameCompany",
+    "EraC_AdminDeleteCompany",
 }
 
 for _, name in ipairs(netStrings) do
@@ -66,6 +68,7 @@ local function SendState(ply)
     state.mySteamID = sid
     state.myName = ply:Nick()
     state.isDarkRP = EraCompanies.Perm.IsDarkRP()
+    state.isSuperAdmin = ply:IsSuperAdmin()
 
     -- Company & membership
     local company, mem = EraCompanies.Perm.GetPlayerCompany(ply)
@@ -1141,6 +1144,70 @@ net.Receive("EraC_DeleteCompany", function(len, ply)
                 SendState(p)
             end
         end
+    end
+end)
+
+-- ═══════════════════════════════════════
+-- ADMIN: RENAME COMPANY
+-- ═══════════════════════════════════════
+
+net.Receive("EraC_AdminRenameCompany", function(len, ply)
+    if not IsValid(ply) or not ply:IsSuperAdmin() then return end
+
+    local companyId = net.ReadUInt(32)
+    local newName = string.Trim(net.ReadString())
+
+    if #newName < EraCompanies.Config.NameMin or #newName > EraCompanies.Config.NameMax then
+        Notify(ply, "Nom invalide.", true)
+        return
+    end
+
+    local company = EraCompanies.DB.GetCompany(companyId)
+    if not company then return end
+
+    if EraCompanies.DB.GetCompanyByName(newName) then
+        Notify(ply, "Ce nom est déjà pris.", true)
+        return
+    end
+
+    EraCompanies.DB.RenameCompany(companyId, newName)
+    Notify(ply, "[ADMIN] Entreprise #" .. companyId .. " renommée en \"" .. newName .. "\" !")
+
+    -- Update state for everyone since it affects the global list
+    for _, p in ipairs(player.GetAll()) do
+        SendState(p)
+    end
+end)
+
+-- ═══════════════════════════════════════
+-- ADMIN: DELETE COMPANY
+-- ═══════════════════════════════════════
+
+net.Receive("EraC_AdminDeleteCompany", function(len, ply)
+    if not IsValid(ply) or not ply:IsSuperAdmin() then return end
+
+    local companyId = net.ReadUInt(32)
+    local company = EraCompanies.DB.GetCompany(companyId)
+    if not company then return end
+
+    local companyName = company.name
+    local members = EraCompanies.DB.GetMembers(companyId)
+
+    EraCompanies.DB.DeleteCompany(companyId)
+    Notify(ply, "[ADMIN] Entreprise \"" .. companyName .. "\" supprimée !")
+
+    -- Notify and update members
+    for _, m in ipairs(members) do
+        for _, p in ipairs(player.GetAll()) do
+            if p:SteamID64() == m.steamid then
+                Notify(p, "Votre entreprise a été supprimée par un administrateur.")
+            end
+        end
+    end
+
+    -- Update state for everyone
+    for _, p in ipairs(player.GetAll()) do
+        SendState(p)
     end
 end)
 

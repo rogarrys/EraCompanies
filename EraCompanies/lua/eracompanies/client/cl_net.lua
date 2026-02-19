@@ -137,6 +137,19 @@ function EraCompanies.Net.DeleteGrade(gradeId)
     net.SendToServer()
 end
 
+function EraCompanies.Net.AdminRenameCompany(id, newName)
+    net.Start("EraC_AdminRenameCompany")
+    net.WriteUInt(id, 32)
+    net.WriteString(newName)
+    net.SendToServer()
+end
+
+function EraCompanies.Net.AdminDeleteCompany(id)
+    net.Start("EraC_AdminDeleteCompany")
+    net.WriteUInt(id, 32)
+    net.SendToServer()
+end
+
 function EraCompanies.Net.RenameCompany(newName)
     net.Start("EraC_RenameCompany")
     net.WriteString(newName)

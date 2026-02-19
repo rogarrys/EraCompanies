@@ -132,6 +132,14 @@ function EraCompanies.OpenMenu()
         EraCompanies.Net.DeleteGrade(tonumber(gradeId) or 0)
     end)
 
+    html:AddFunction("lua", "adminRenameCompany", function(id, newName)
+        EraCompanies.Net.AdminRenameCompany(tonumber(id) or 0, newName or "")
+    end)
+
+    html:AddFunction("lua", "adminDeleteCompany", function(id)
+        EraCompanies.Net.AdminDeleteCompany(tonumber(id) or 0)
+    end)
+
     html:AddFunction("lua", "renameCompany", function(name)
         EraCompanies.Net.RenameCompany(name or "")
     end)

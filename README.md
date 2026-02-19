@@ -1,27 +1,22 @@
 # EraCompanies
 
-EraCompanies is a high-quality, modern business management addon for Garry's Mod. It allows players to create, manage, and grow their own companies with a sleek, responsive UI.
+EraCompanies est un addon Garry's Mod complet pour la gestion d'entreprises (RP). Il permet aux joueurs de créer, gérer et rejoindre des entreprises avec un système de grades, de banque, de messagerie et de candidatures.
 
-## Features
+## ✨ Fonctionnalités
+- **Système de Secteurs** : Choisissez un secteur d'activité (Mécano, Médical, etc.).
+- **Gestion Administrative** : Les SuperAdmins peuvent renommer ou supprimer n'importe quelle entreprise.
+- **Interface Moderne** : UI responsive en DHTML avec prévisualisation standalone.
+- **Grades & Permissions** : Système complet de hiérarchie avec permissions granulaires.
+- **Économie** : Banque d'entreprise avec registre des transactions.
+- **Recrutement** : Système de candidatures personnalisables et invitations.
 
-- **Sleek DHTML Interface**: A premium, modern UI for all company operations.
-- **Business Sectors**: Categorize your company (e.g., Mechanics, Security, Tech).
-- **Grade Management**: Detailed permission system for company members.
-- **Company Bank**: Deposit and withdraw funds to manage your business's wealth.
-- **Member Management**: Invite players, manage applications, and promote members.
-- **Duty System**: Track service time and manage your workforce.
+## 🛠️ Installation
+1. Clonez ce dépôt dans votre dossier `garrysmod/addons/`.
+2. Configurez les options dans `lua/eracompanies/sh_config.lua`.
+3. Relancez votre serveur.
 
-## Installation
-
-1. Download the repository.
-2. Place the `EraCompanies` folder into your server's `garrysmod/addons/` directory.
-3. (Optional) Configure the addon in `lua/eracompanies/sh_config.lua`.
-4. Restart your server.
-
-## Developers
-
-The UI interface is located in the `UI_Interface` directory. It can be previewed in a standard web browser thanks to a built-in mock bridge for development.
+## 💻 Aperçu Web
+L'interface peut être ouverte directement dans un navigateur via `UI_Interface/index.html` pour un aperçu rapide grâce au système de simulation (Mock) intégré.
 
 ---
-
-*Developed with ❤️ for the Garry's Mod community.*
+Développé par [Era]

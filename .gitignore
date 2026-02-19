@@ -1,13 +1,9 @@
-# Garry's Mod files
+# Garry's Mod Addon Gitignore
 *.db
 *.log
 *.txt
-.cache/
-
-# System files
 .DS_Store
 Thumbs.db
 
-# UI Build/Temp files
-# (Add node_modules if you ever use npm)
-node_modules/
+# UI assets
+UI_Interface/mock_data.json

@@ -174,6 +174,26 @@ if (!IS_GMOD) {
             console.log("[MOCK] getClientSettings");
             window.receiveClientSettings({ notifSound: true, reduceAnimations: false });
         },
+        adminRenameCompany: (id, name) => {
+            console.log(`[MOCK] adminRenameCompany: ${id} -> ${name}`);
+            showToast(`[ADMIN] Entreprise #${id} renommée en "${name}"`);
+            setTimeout(() => {
+                window.receiveState(JSON.stringify({
+                    ...S,
+                    allCompanies: S.allCompanies.map(c => c.id === id ? { ...c, name: name } : c)
+                }));
+            }, 500);
+        },
+        adminDeleteCompany: (id) => {
+            console.log(`[MOCK] adminDeleteCompany: ${id}`);
+            showToast(`[ADMIN] Entreprise #${id} supprimée`);
+            setTimeout(() => {
+                window.receiveState(JSON.stringify({
+                    ...S,
+                    allCompanies: S.allCompanies.filter(c => c.id !== id)
+                }));
+            }, 500);
+        },
         // Add other bridge functions as needed
     };
 
@@ -183,6 +203,7 @@ if (!IS_GMOD) {
             window.receiveState(JSON.stringify({
                 myName: "Développeur",
                 mySteamID: "76561198000000000",
+                isSuperAdmin: true,
                 myCompany: null,
                 allCompanies: [
                     { id: 1, name: "Era Corp", sector: "Technologie", owner_name: "Noah", member_count: 5 },
@@ -426,12 +447,28 @@ function doCreateCompany() {
     lua.createCompany(name, sector);
 }
 
+function doAdminRename(id, oldName) {
+    const newName = prompt("Nouveau nom pour l'entreprise :", oldName);
+    if (!newName) return;
+    const name = newName.trim();
+    if (name.length < 3 || name.length > 24) {
+        showToast('Le nom doit contenir entre 3 et 24 caractères.', true);
+        return;
+    }
+    lua.adminRenameCompany(id, name);
+}
+
+function doAdminDelete(id, name) {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'entreprise "${name}" ? Cette action est irréversible.`)) return;
+    lua.adminDeleteCompany(id);
+}
+
 // ═══════════════════════════════════════
 // TAB: LISTE DES ENTREPRISES
 // ═══════════════════════════════════════
 
 function renderListe(el) {
-    const companies = S.companies || [];
+    const companies = S.allCompanies || [];
 
     let html = `<h1 class="page-title">Entreprises</h1>
     <p class="page-subtitle">${companies.length} entreprise${companies.length !== 1 ? 's' : ''} enregistrée${companies.length !== 1 ? 's' : ''}</p>`;
@@ -453,6 +490,10 @@ function renderListe(el) {
                     <span>${ICONS.users} ${c.member_count} membre${c.member_count != 1 ? 's' : ''}</span>
                 </div>
                 <div class="company-actions">
+                    ${S.isSuperAdmin ? `
+                        <button class="btn btn-warning btn-sm" onclick="doAdminRename(${c.id}, '${esc(c.name)}')">Renommer</button>
+                        <button class="btn btn-danger btn-sm" onclick="doAdminDelete(${c.id}, '${esc(c.name)}')">Supprimer</button>
+                    ` : ''}
                     <button class="btn btn-ghost btn-sm" onclick="openContactModal(${c.id}, '${esc(c.name)}')">${ICONS.mail} Contacter</button>`;
 
             if (isMember) {
