@@ -9,6 +9,19 @@ let currentTab = ''; // Current active tab
 let clientSettings = { notifSound: true, reduceAnimations: false };
 let threadData = null; // Currently viewed thread
 
+const $ = (id) => document.getElementById(id);
+const esc = (str) => {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+};
+const asArray = (v) => {
+    if (!v) return [];
+    if (Array.isArray(v)) return v;
+    return Object.values(v);
+};
+const attr = (v) => JSON.stringify(v || '').replace(/"/g, '&quot;');
+
 // ─── Icons (inline SVG) ───
 const ICONS = {
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
@@ -180,7 +193,7 @@ if (!IS_GMOD) {
             setTimeout(() => {
                 window.receiveState(JSON.stringify({
                     ...S,
-                    allCompanies: S.allCompanies.map(c => c.id === id ? { ...c, name: name } : c)
+                    allCompanies: asArray(S.allCompanies).map(c => c.id === id ? { ...c, name: name } : c)
                 }));
             }, 500);
         },
@@ -223,7 +236,6 @@ if (!IS_GMOD) {
     }, 100);
 }
 
-function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
 function formatDate(ts) {
     if (!ts) return '—';
     const d = new Date(ts * 1000);
@@ -356,8 +368,8 @@ function renderTab(tabId) {
 // ═══════════════════════════════════════
 
 function renderAccueil(el) {
-    const invites = S.invites || [];
-    const myApps = S.myApplications || [];
+    const invites = asArray(S.invites);
+    const myApps = asArray(S.myApplications);
 
     let html = `<h1 class="page-title">Bienvenue, ${esc(S.myName || 'Joueur')}</h1>
     <p class="page-subtitle">Créez ou rejoignez une entreprise pour commencer.</p>
@@ -468,7 +480,7 @@ function doAdminDelete(id, name) {
 // ═══════════════════════════════════════
 
 function renderListe(el) {
-    const companies = S.allCompanies || [];
+    const companies = asArray(S.allCompanies);
 
     let html = `<h1 class="page-title">Entreprises</h1>
     <p class="page-subtitle">${companies.length} entreprise${companies.length !== 1 ? 's' : ''} enregistrée${companies.length !== 1 ? 's' : ''}</p>`;
@@ -479,7 +491,7 @@ function renderListe(el) {
         html += `<div class="card-grid">`;
         companies.forEach(c => {
             const isMember = S.myCompany && S.myCompany.id === c.id;
-            const alreadyApplied = (S.myApplications || []).some(a => a.company_id === c.id);
+            const alreadyApplied = asArray(S.myApplications).some(a => a.company_id === c.id);
             const inAnyCompany = !!S.myCompany;
 
             html += `<div class="company-card">
@@ -491,10 +503,10 @@ function renderListe(el) {
                 </div>
                 <div class="company-actions">
                     ${S.isSuperAdmin ? `
-                        <button class="btn btn-warning btn-sm" onclick="doAdminRename(${c.id}, '${esc(c.name)}')">Renommer</button>
-                        <button class="btn btn-danger btn-sm" onclick="doAdminDelete(${c.id}, '${esc(c.name)}')">Supprimer</button>
+                        <button class="btn btn-warning btn-sm" onclick="doAdminRename(${c.id}, ${attr(c.name)})">Renommer</button>
+                        <button class="btn btn-danger btn-sm" onclick="doAdminDelete(${c.id}, ${attr(c.name)})">Supprimer</button>
                     ` : ''}
-                    <button class="btn btn-ghost btn-sm" onclick="openContactModal(${c.id}, '${esc(c.name)}')">${ICONS.mail} Contacter</button>`;
+                    <button class="btn btn-ghost btn-sm" onclick="openContactModal(${c.id}, ${attr(c.name)})">${ICONS.mail} Contacter</button>`;
 
             if (isMember) {
                 html += `<span class="badge badge-accent">Votre entreprise</span>`;
@@ -503,7 +515,7 @@ function renderListe(el) {
             } else if (inAnyCompany) {
                 html += `<button class="btn btn-primary btn-sm disabled" disabled data-tooltip="Vous êtes déjà dans une entreprise">${ICONS.send} Postuler</button>`;
             } else {
-                html += `<button class="btn btn-primary btn-sm" onclick="openApplyModal(${c.id}, '${esc(c.name)}')">${ICONS.send} Postuler</button>`;
+                html += `<button class="btn btn-primary btn-sm" onclick="openApplyModal(${c.id}, ${attr(c.name)})">${ICONS.send} Postuler</button>`;
             }
 
             html += `</div></div>`;
@@ -541,8 +553,8 @@ function doSendContact(companyId) {
 }
 
 function openApplyModal(companyId, companyName) {
-    const company = (S.companies || []).find(c => c.id === companyId);
-    const form = (company && company.form && company.form.length > 0) ? company.form : null;
+    const company = asArray(S.allCompanies).find(c => c.id === companyId);
+    const form = (company && company.form && asArray(company.form).length > 0) ? asArray(company.form) : null;
 
     let fields = '';
     if (form) {
@@ -624,7 +636,7 @@ function renderMessagerie(el) {
 }
 
 function renderRecrutement(canReview) {
-    const apps = S.applications || [];
+    const apps = asArray(S.applications);
     if (!canReview) return `<div class="card">${emptyState('shield', 'Vous n\'avez pas la permission de gérer les candidatures.')}</div>`;
     if (apps.length === 0) return `<div class="card">${emptyState('inbox', 'Aucune candidature en attente.')}</div>`;
 
@@ -654,7 +666,7 @@ function renderRecrutement(canReview) {
 function renderMails(canRead) {
     if (!canRead) return `<div class="card">${emptyState('shield', 'Vous n\'avez pas la permission d\'accéder à la messagerie.')}</div>`;
 
-    const threads = S.threads || [];
+    const threads = asArray(S.threads);
     if (threads.length === 0) return `<div class="card">${emptyState('mail', 'Aucun message reçu.')}</div>`;
 
     let html = `<div class="card" style="padding:0;">`;
@@ -687,7 +699,7 @@ function renderThreadView() {
         </div>
     </div>`;
 
-    (threadData.messages || []).forEach(m => {
+    asArray(threadData.messages).forEach(m => {
         html += `<div class="message-bubble">
             <div class="message-author">${esc(m.name)}</div>
             <div class="message-body">${esc(m.body)}</div>
@@ -716,8 +728,8 @@ function doReply(threadId) {
 // ═══════════════════════════════════════
 
 function renderEmployes(el) {
-    const members = S.members || [];
-    const grades = S.grades || [];
+    const members = asArray(S.members);
+    const grades = asArray(S.grades);
 
     let html = `<h1 class="page-title">Employés</h1>
     <p class="page-subtitle">${members.length} membre${members.length !== 1 ? 's' : ''} dans ${esc(S.myCompany ? S.myCompany.name : '')}</p>`;
@@ -770,7 +782,7 @@ function renderEmployes(el) {
 }
 
 function openSetGradeModal(steamid, name) {
-    const grades = (S.grades || []).filter(g => g.name !== 'Patron');
+    const grades = asArray(S.grades).filter(g => g.name !== 'Patron');
     let opts = '';
     grades.forEach(g => {
         opts += `<option value="${g.id}">${esc(g.name)} (poids: ${g.weight})</option>`;
@@ -814,7 +826,7 @@ function confirmKick(steamid, name) {
 let selectedGradeId = null;
 
 function renderGrades(el) {
-    const grades = S.grades || [];
+    const grades = asArray(S.grades);
     const canEdit = isOwner() || hasPermission('edit_grades');
 
     let html = `<h1 class="page-title">Grades</h1>
@@ -924,7 +936,7 @@ function doSaveSalary(gradeId) {
 }
 
 function openGradeEditor(gradeId) {
-    const grade = gradeId ? (S.grades || []).find(g => g.id === gradeId) : null;
+    const grade = gradeId ? asArray(S.grades).find(g => g.id === gradeId) : null;
     const isNew = !grade;
     const perms = grade ? (grade.permissions || []) : [];
 
@@ -991,7 +1003,7 @@ function doSaveGrade(gradeId) {
 }
 
 function confirmDeleteGrade(gradeId) {
-    const grade = (S.grades || []).find(g => g.id === gradeId);
+    const grade = asArray(S.grades).find(g => g.id === gradeId);
     const name = grade ? grade.name : '';
     showModal(`
         <div class="modal-title">Supprimer le grade "${esc(name)}" ?</div>
@@ -1014,7 +1026,7 @@ function doDeleteGrade(gradeId) {
 
 function renderBanque(el) {
     const balance = S.myCompany ? S.myCompany.balance : 0;
-    const ledger = S.ledger || [];
+    const ledger = asArray(S.ledger);
     const canDeposit = hasPermission('bank_deposit');
     const canWithdraw = hasPermission('bank_withdraw');
     const isDarkRP = S.isDarkRP;
@@ -1145,7 +1157,7 @@ function renderParametres(el) {
                 <div class="input-with-btn">
                     <select class="input" id="invite-select">
                         <option value="">— Sélectionnez —</option>`;
-            (S.onlinePlayers || []).forEach(p => {
+            asArray(S.onlinePlayers).forEach(p => {
                 if (p.steamid !== S.mySteamID) {
                     html += `<option value="${p.steamid}">${esc(p.name)}</option>`;
                 }
@@ -1170,7 +1182,7 @@ function renderParametres(el) {
                 <div class="input-with-btn">
                     <select class="input" id="transfer-select">
                         <option value="">— Sélectionnez un membre —</option>`;
-            (S.members || []).forEach(m => {
+            asArray(S.members).forEach(m => {
                 if (m.steamid !== S.mySteamID) {
                     html += `<option value="${m.steamid}">${esc(m.name)}</option>`;
                 }

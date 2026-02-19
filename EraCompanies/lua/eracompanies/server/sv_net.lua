@@ -70,6 +70,11 @@ local function SendState(ply)
     state.isDarkRP = EraCompanies.Perm.IsDarkRP()
     state.isSuperAdmin = ply:IsSuperAdmin()
 
+    -- Config (sectors, etc.)
+    state.config = {
+        Sectors = EraCompanies.Config.Sectors or {}
+    }
+
     -- Company & membership
     local company, mem = EraCompanies.Perm.GetPlayerCompany(ply)
     if company then
@@ -200,22 +205,24 @@ local function SendState(ply)
     end
 
     -- All companies (for list tab)
-    state.companies = {}
+    state.allCompanies = {}
     local allComps = EraCompanies.DB.GetAllCompanies()
-    for _, c in ipairs(allComps) do
-        -- Get form for this company
-        local cSettings = EraCompanies.DB.GetSettings(c.id)
-        local form = cSettings and (util.JSONToTable(cSettings.form_json) or {}) or {}
+    if allComps then
+        for _, c in ipairs(allComps) do
+            -- Get form for this company
+            local cSettings = EraCompanies.DB.GetSettings(c.id)
+            local form = cSettings and (util.JSONToTable(cSettings.form_json) or {}) or {}
 
-        table.insert(state.companies, {
-            id = tonumber(c.id),
-            name = c.name,
-            sector = c.sector,
-            owner_steamid = c.owner_steamid,
-            owner_name = EraCompanies.Perm.GetPlayerName(c.owner_steamid),
-            member_count = tonumber(c.member_count),
-            form = form,
-        })
+            table.insert(state.allCompanies, {
+                id = tonumber(c.id),
+                name = c.name,
+                sector = c.sector,
+                owner_steamid = c.owner_steamid,
+                owner_name = EraCompanies.Perm.GetPlayerName(c.owner_steamid),
+                member_count = tonumber(c.member_count),
+                form = form,
+            })
+        end
     end
 
     -- Online players (for invite picker)
