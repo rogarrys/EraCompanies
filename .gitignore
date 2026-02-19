@@ -1,0 +1,13 @@
+# Garry's Mod files
+*.db
+*.log
+*.txt
+.cache/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# UI Build/Temp files
+# (Add node_modules if you ever use npm)
+node_modules/
